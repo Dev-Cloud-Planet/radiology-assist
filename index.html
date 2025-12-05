@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Asistente IA de Radiografías - Clínica</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    :root {
+      --bg: #050816;
+      --card-bg: #0b1020;
+      --accent: #38bdf8;
+      --accent-soft: rgba(56,189,248,0.08);
+      --accent-strong: rgba(56,189,248,0.25);
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --danger: #f97373;
+      --border: #1f2937;
+      --radius-xl: 20px;
+      --radius-lg: 14px;
+      --shadow-soft: 0 22px 45px rgba(0,0,0,0.55);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #0f172a 0, #020617 45%, #000 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: stretch;
+    }
+
+    .app-shell {
+      width: 100%;
+      max-width: 1180px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 30%, #38bdf8, #1d4ed8);
+      position: relative;
+      box-shadow: 0 0 25px rgba(56,189,248,0.5);
+      overflow: hidden;
+    }
+
+    .brand-logo::before {
+      content: "";
+      position: absolute;
+      inset: 9px;
+      border-radius: inherit;
+      border: 2px solid rgba(15,23,42,0.9);
+    }
+
+    .brand-text h1 {
+      margin: 0;
+      font-size: 1.4rem;
+      letter-spacing: 0.03em;
+    }
+
+    .brand-text span {
+      display: block;
+      margin-top: 2px;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .badge {
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.5);
+      font-size: 0.78rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .badge-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 12px #22c55e;
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+      gap: 18px;
+    }
+
+    @media (max-width: 900px) {
+      main {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+
+    .card {
+      background: radial-gradient(circle at top left, #111827, #020617);
+      border-radius: var(--radius-xl);
+      padding: 18px 18px 16px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(15,23,42,0.9);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: -150px;
+      opacity: 0.18;
+      background:
+        radial-gradient(circle at 0 0, rgba(56,189,248,0.4), transparent 58%),
+        radial-gradient(circle at 100% 0, rgba(59,130,246,0.25), transparent 55%),
+        radial-gradient(circle at 0 100%, rgba(16,185,129,0.2), transparent 60%);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .card h2 {
+      margin: 0 0 2px;
+      font-size: 1.1rem;
+    }
+
+    .card-subtitle {
+      margin: 0 0 10px;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .upload-zone {
+      border-radius: var(--radius-lg);
+      border: 1px dashed rgba(148,163,184,0.7);
+      background: linear-gradient(135deg, rgba(15,23,42,0.9), rgba(15,23,42,0.7));
+      padding: 18px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease;
+    }
+
+    .upload-zone:hover {
+      border-color: var(--accent);
+      background: linear-gradient(135deg, rgba(15,23,42,0.95), rgba(15,23,42,0.8));
+      transform: translateY(-1px);
+    }
+
+    .upload-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      border: 1px solid var(--accent-soft);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(15,23,42,0.9);
+      box-shadow: 0 0 18px rgba(56,189,248,0.35);
+      font-size: 20px;
+    }
+
+    .upload-title {
+      font-size: 0.95rem;
+    }
+
+    .upload-subtitle {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .upload-hint {
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .upload-hint span {
+      color: var(--accent);
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    .actions-row {
+      margin-top: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .file-chip {
+      font-size: 0.78rem;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.8);
+      border: 1px solid rgba(148,163,184,0.6);
+      color: var(--muted);
+      max-width: 220px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      border: none;
+      border-radius: 999px;
+      padding: 9px 20px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+      color: #0f172a;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 16px 35px rgba(56,189,248,0.45);
+      transition: transform 0.08s ease, box-shadow 0.08s ease, opacity 0.1s ease;
+      white-space: nowrap;
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.55;
+      cursor: default;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .btn-primary:not(:disabled):hover {
+      transform: translateY(-1px);
+      box-shadow: 0 20px 40px rgba(56,189,248,0.6);
+    }
+
+    .btn-primary-spinner {
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      border: 2px solid rgba(15,23,42,0.15);
+      border-top-color: rgba(15,23,42,0.85);
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .status-line {
+      margin-top: 10px;
+      font-size: 0.8rem;
+      color: var(--muted);
+      min-height: 1.1em;
+    }
+
+    .status-line.error {
+      color: var(--danger);
+    }
+
+    .preview-panel {
+      margin-top: 12px;
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(15,23,42,0.9);
+      background: radial-gradient(circle at top, rgba(15,23,42,1), rgba(3,7,18,1));
+      padding: 10px;
+      display: grid;
+      grid-template-columns: 125px minmax(0,1fr);
+      gap: 10px;
+      align-items: center;
+    }
+
+    @media (max-width: 600px) {
+      .preview-panel {
+        grid-template-columns: minmax(0,1fr);
+      }
+    }
+
+    .preview-image-wrapper {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(15,23,42,0.9);
+      background: #020617;
+    }
+
+    .preview-image-wrapper img {
+      display: block;
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+    }
+
+    .preview-tag {
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      background: rgba(15,23,42,0.8);
+      border: 1px solid rgba(148,163,184,0.7);
+      color: var(--muted);
+    }
+
+    .preview-metadata h3 {
+      margin: 0 0 4px;
+      font-size: 0.9rem;
+    }
+
+    .preview-metadata p {
+      margin: 0;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .pill-row {
+      margin-top: 6px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .pill {
+      font-size: 0.72rem;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.9);
+      border: 1px solid rgba(148,163,184,0.6);
+      color: var(--muted);
+    }
+
+    .pill-strong {
+      background: var(--accent-soft);
+      border-color: var(--accent-strong);
+      color: var(--accent);
+    }
+
+    .report-body {
+      margin-top: 10px;
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(31,41,55,0.9);
+      background: radial-gradient(circle at top left, rgba(15,23,42,1), rgba(15,23,42,0.98));
+      padding: 12px 12px 10px;
+      font-size: 0.86rem;
+      line-height: 1.45;
+      white-space: pre-line;
+      max-height: 240px;
+      overflow-y: auto;
+    }
+
+    .disclaimer {
+      margin-top: 8px;
+      font-size: 0.75rem;
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 6px 10px;
+      border: 1px dashed rgba(148,163,184,0.6);
+      background: rgba(15,23,42,0.8);
+    }
+
+    .disclaimer span {
+      color: #facc15;
+      margin-right: 4px;
+    }
+
+    .results-card {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .results-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .card-subtitle {
+      margin: 0 0 10px;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .chip {
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      border: 1px solid rgba(148,163,184,0.7);
+      color: var(--muted);
+    }
+
+    .table-wrapper {
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(31,41,55,0.9);
+      background: radial-gradient(circle at top left, rgba(15,23,42,0.98), rgba(15,23,42,1));
+      max-height: 250px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+
+    thead {
+      background: rgba(15,23,42,0.96);
+    }
+
+    th, td {
+      padding: 7px 10px;
+      text-align: left;
+    }
+
+    th {
+      font-weight: 500;
+      color: var(--muted);
+      border-bottom: 1px solid rgba(31,41,55,0.9);
+      position: sticky;
+      top: 0;
+      background: rgba(15,23,42,0.96);
+      z-index: 1;
+    }
+
+    tbody tr:nth-child(odd) {
+      background: rgba(15,23,42,0.96);
+    }
+
+    tbody tr:nth-child(even) {
+      background: rgba(15,23,42,0.9);
+    }
+
+    .pill-prob {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .prob-bar {
+      width: 80px;
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(31,41,55,1);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .prob-bar-fill {
+      position: absolute;
+      inset: 0;
+      transform-origin: left center;
+      background: linear-gradient(90deg, #22c55e, #a3e635);
+    }
+
+    .empty-state {
+      padding: 12px;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    footer {
+      margin-top: 4px;
+      font-size: 0.72rem;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+      opacity: 0.85;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header>
+      <div class="brand">
+        <div class="brand-logo"></div>
+        <div class="brand-text">
+          <h1>Asistente IA de Radiografías</h1>
+          <span>Apoyo al médico en la lectura de tórax</span>
+        </div>
+      </div>
+      <div class="badge">
+        <span class="badge-dot"></span>
+        IA en ejecución · Uso exclusivo profesional
+      </div>
+    </header>
+
+    <main>
+      <!-- Izquierda: carga y preview -->
+      <section class="card">
+        <h2>Subir radiografía de tórax</h2>
+        <p class="card-subtitle">
+          Carga una radiografía (JPG o PNG). La IA generará un informe automático de apoyo,
+          que el médico deberá validar antes de informar al paciente.
+        </p>
+
+        <label class="upload-zone" id="uploadZone">
+          <div class="upload-icon">🩻</div>
+          <div class="upload-title">Haz clic para seleccionar una imagen</div>
+          <div class="upload-subtitle">o arrastra y suelta aquí una radiografía de tórax</div>
+          <div class="upload-hint">
+            Formatos admitidos: <span>JPG</span>, <span>JPEG</span>, <span>PNG</span>
+          </div>
+          <input
+            id="fileInput"
+            class="file-input"
+            type="file"
+            accept="image/jpeg,image/png"
+          />
+        </label>
+
+        <div class="actions-row">
+          <div id="fileChip" class="file-chip" style="display:none;"></div>
+
+          <button id="analyzeButton" class="btn-primary" disabled>
+            <div id="btnSpinner" class="btn-primary-spinner" style="display:none;"></div>
+            <span id="btnText">Analizar radiografía</span>
+          </button>
+        </div>
+
+        <div id="statusLine" class="status-line"></div>
+
+        <div id="previewPanel" class="preview-panel" style="display:none;">
+          <div class="preview-image-wrapper">
+            <img id="previewImage" alt="Vista previa radiografía" />
+            <div class="preview-tag">Vista previa</div>
+          </div>
+          <div class="preview-metadata">
+            <h3 id="previewTitle">Radiografía seleccionada</h3>
+            <p id="previewInfo">Nombre: — · Tamaño: —</p>
+            <div class="pill-row">
+              <div class="pill pill-strong">Tórax</div>
+              <div class="pill">Proyección no validada por IA</div>
+              <div class="pill">Revisión obligatoria por médico</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="reportContainer" class="report-body" style="display:none;"></div>
+
+        <div class="disclaimer">
+          <span>⚠️</span>
+          Este sistema de IA no emite diagnósticos definitivos. Es una herramienta de apoyo
+          que debe ser utilizada únicamente por profesionales sanitarios, junto con la
+          exploración clínica y otras pruebas complementarias.
+        </div>
+      </section>
+
+      <!-- Derecha: tabla de resultados -->
+      <section class="card results-card">
+        <div class="results-header-row">
+          <div>
+            <h2>Hallazgos y probabilidades</h2>
+            <p class="card-subtitle">
+              Resumen estructurado de los hallazgos sugeridos por el modelo. Úsese como checklist
+              para la revisión radiológica, no como dictamen automático.
+            </p>
+          </div>
+          <div class="chip">Top 15 hallazgos (ordenados por probabilidad)</div>
+        </div>
+
+        <div id="tableWrapper" class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Patología (ES)</th>
+                <th>Label (modelo)</th>
+                <th>Probabilidad</th>
+              </tr>
+            </thead>
+            <tbody id="resultsBody">
+              <tr>
+                <td colspan="3">
+                  <div class="empty-state">
+                    Aún no se ha analizado ninguna radiografía. Sube una imagen para ver aquí
+                    el desglose de probabilidades por patología.
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="disclaimer">
+          <span>ℹ️</span>
+          Las probabilidades mostradas corresponden a la salida del modelo DenseNet-121
+          (torchxrayvision, pesos pre-entrenados en radiografías de tórax). No reflejan riesgo
+          clínico global y deben interpretarse siempre en contexto.
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>Asistente IA de radiografías · Uso exclusivo clínico</span>
+      <span>Este software no sustituye la interpretación de un radiólogo.</span>
+    </footer>
+  </div>
+
+  <script>
+    // === URL DEL BACKEND ===
+    // Ajusta esto según tu FastAPI:
+    // Ejemplo si tu endpoint es @app.post("/api/analyze-xray"):
+    const API_URL = "http://localhost:8000/analyze";
+
+    const fileInput = document.getElementById("fileInput");
+    const uploadZone = document.getElementById("uploadZone");
+    const analyzeButton = document.getElementById("analyzeButton");
+    const statusLine = document.getElementById("statusLine");
+    const reportContainer = document.getElementById("reportContainer");
+    const fileChip = document.getElementById("fileChip");
+    const previewPanel = document.getElementById("previewPanel");
+    const previewImage = document.getElementById("previewImage");
+    const previewTitle = document.getElementById("previewTitle");
+    const previewInfo = document.getElementById("previewInfo");
+    const resultsBody = document.getElementById("resultsBody");
+    const btnSpinner = document.getElementById("btnSpinner");
+    const btnText = document.getElementById("btnText");
+
+    let selectedFile = null;
+
+    function setStatus(message, isError = false) {
+      statusLine.textContent = message || "";
+      statusLine.classList.toggle("error", !!isError);
+    }
+
+    function setLoading(isLoading) {
+      analyzeButton.disabled = !selectedFile || isLoading;
+      btnSpinner.style.display = isLoading ? "inline-block" : "none";
+      btnText.textContent = isLoading ? "Analizando..." : "Analizar radiografía";
+    }
+
+    function resetResults() {
+      reportContainer.style.display = "none";
+      resultsBody.innerHTML = `
+        <tr>
+          <td colspan="3">
+            <div class="empty-state">
+              Aún no se ha analizado ninguna radiografía. Sube una imagen para ver aquí
+              el desglose de probabilidades por patología.
+            </div>
+          </td>
+        </tr>
+      `;
+    }
+
+    function onFileSelected(file) {
+      if (!file) return;
+      selectedFile = file;
+
+      // Chip con nombre
+      fileChip.style.display = "inline-block";
+      fileChip.textContent = file.name;
+
+      // Habilitar botón
+      analyzeButton.disabled = false;
+
+      // Vista previa
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        previewImage.src = e.target.result;
+        previewTitle.textContent = "Radiografía seleccionada";
+        const sizeKB = (file.size / 1024).toFixed(1);
+        previewInfo.textContent = `Nombre: ${file.name} · Tamaño: ${sizeKB} KB`;
+        previewPanel.style.display = "grid";
+      };
+      reader.readAsDataURL(file);
+
+      // Reset estado
+      setStatus("");
+      reportContainer.style.display = "none";
+    }
+
+    uploadZone.addEventListener("click", () => {
+      fileInput.click();
+    });
+
+    fileInput.addEventListener("change", (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      if (!["image/jpeg", "image/png"].includes(file.type)) {
+        setStatus("Formato no válido. Utiliza JPG o PNG.", true);
+        return;
+      }
+
+      onFileSelected(file);
+    });
+
+    // Drag & drop
+    ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
+      uploadZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      });
+    });
+
+    ["dragenter", "dragover"].forEach((eventName) => {
+      uploadZone.addEventListener(eventName, () => {
+        uploadZone.style.borderColor = "#38bdf8";
+      });
+    });
+
+    ["dragleave", "drop"].forEach((eventName) => {
+      uploadZone.addEventListener(eventName, () => {
+        uploadZone.style.borderColor = "rgba(148,163,184,0.7)";
+      });
+    });
+
+    uploadZone.addEventListener("drop", (event) => {
+      const file = event.dataTransfer.files[0];
+      if (!file) return;
+
+      if (!["image/jpeg", "image/png"].includes(file.type)) {
+        setStatus("Formato no válido. Utiliza JPG o PNG.", true);
+        return;
+      }
+
+      onFileSelected(file);
+    });
+
+    async function analyze() {
+  if (!selectedFile) return;
+
+  setStatus("");
+  setLoading(true);
+
+  try {
+    const formData = new FormData();
+    // El backend espera un campo "file"
+    formData.append("file", selectedFile);
+
+    console.log("Enviando a:", API_URL);
+
+    const response = await fetch(API_URL, {
+      method: "POST",
+      body: formData,
+    });
+
+    // Si el backend responde con error (404, 422, 500, etc.)
+    if (!response.ok) {
+      // Intentamos leer el texto de error del backend
+      let backendError = "";
+      try {
+        backendError = await response.text();
+      } catch (_) {
+        backendError = "";
+      }
+
+      console.error("Respuesta no OK:", response.status, backendError);
+      throw new Error(
+        `Error en el servidor (${response.status}). Detalle: ${backendError || "sin mensaje detallado"}`
+      );
+    }
+
+    // Si todo va bien, parseamos JSON
+    const data = await response.json();
+    console.log("Respuesta JSON:", data);
+
+    // Informe
+    if (data.preliminary_report) {
+      reportContainer.textContent = data.preliminary_report;
+      reportContainer.style.display = "block";
+    } else {
+      reportContainer.style.display = "none";
+    }
+
+    // Tabla de resultados
+    if (Array.isArray(data.predictions) && data.predictions.length > 0) {
+      const top = data.predictions.slice(0, 15);
+      resultsBody.innerHTML = "";
+
+      top.forEach((p) => {
+        const prob = Number(p.probability) || 0;
+        const probPct = (prob * 100).toFixed(1);
+        const safeLabelEs = p.label_es || p.label_en || "-";
+        const safeLabelEn = p.label_en || "-";
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${safeLabelEs}</td>
+          <td style="color: var(--muted);">${safeLabelEn}</td>
+          <td>
+            <span class="pill-prob">
+              <span>${probPct}%</span>
+              <span class="prob-bar">
+                <span class="prob-bar-fill" style="transform: scaleX(${prob});"></span>
+              </span>
+            </span>
+          </td>
+        `;
+        resultsBody.appendChild(tr);
+      });
+    } else {
+      resetResults();
+    }
+
+    setStatus(
+      "Análisis completado. Recuerde: el informe es solo de apoyo y requiere validación médica."
+    );
+  } catch (err) {
+    console.error("Error en analyze():", err);
+    setStatus(
+      "No se pudo analizar la radiografía: " + (err.message || "Error desconocido."),
+      true
+    );
+  } finally {
+    setLoading(false);
+  }
+}
+
+    analyzeButton.addEventListener("click", analyze);
+  </script>
+</body>
+</html>
