@@ -1,5 +1,7 @@
 FROM python:3.11-slim
 
+
+LABEL org.opencontainers.image.source="https://github.com/Dev-Cloud-Planet/radiology-assist.git"
 # Evitar buffering de logs y subir timeout de pip
 ENV PYTHONUNBUFFERED=1 \
     PIP_DEFAULT_TIMEOUT=1000
