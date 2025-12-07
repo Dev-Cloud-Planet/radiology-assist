@@ -2,6 +2,9 @@ from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from .core.inference import analyze_xray
 
+# 1. IMPORTAR LA CLASE NECESARIA
+from fastapi.staticfiles import StaticFiles 
+
 app = FastAPI(
     title="Radiology Assist API",
     description=(
@@ -52,3 +55,13 @@ async def analyze_radiograph(file: UploadFile = File(...)):
     )
 
     return result
+
+# 2. MONTAR ARCHIVOS ESTÁTICOS AL FINAL (¡CRÍTICO!)
+# Esto debe ir siempre al final de todas las rutas de la API.
+# directory="." apunta a la raíz del proyecto (donde está index.html).
+# html=True le indica a FastAPI que sirva index.html cuando se accede a '/'.
+app.mount(
+    "/",
+    StaticFiles(directory=".", html=True),
+    name="static"
+)
